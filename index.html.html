@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PPL Pro — Telegram</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080810;--surface:#0f0f1a;--card:#141420;--card2:#1a1a28;--border:#252535;--border2:#2d2d42;
+  --primary:#6c63ff;--primary-dim:rgba(108,99,255,.15);--primary-glow:rgba(108,99,255,.3);
+  --teal:#00d4aa;--teal-dim:rgba(0,212,170,.12);
+  --amber:#ffb347;--amber-dim:rgba(255,179,71,.12);
+  --coral:#ff6b6b;--coral-dim:rgba(255,107,107,.12);
+  --green:#4ade80;--green-dim:rgba(74,222,128,.12);
+  --text:#e8e8f5;--text2:#9090b0;--text3:#5a5a7a;
+  --radius:14px;--radius-sm:8px;
+  --font:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--text);font-family:var(--font);font-size:14px;display:flex;flex-direction:column}
+
+.app{display:flex;flex-direction:column;height:100vh;height:calc(var(--tg-viewport-height,100vh));overflow:hidden}
+
+/* TOP BAR */
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;padding-top:calc(10px + var(--safe-top));display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:50px}
+.top-logo{font-size:15px;font-weight:700;letter-spacing:-.02em}
+.top-logo span{color:var(--primary)}
+.top-date{font-size:11px;color:var(--text2);font-family:var(--mono)}
+.top-streak{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--amber)}
+
+/* PAGES */
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:calc(70px + var(--safe-bot))}
+.page.active{display:block}
+.page::-webkit-scrollbar{display:none}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;padding-bottom:var(--safe-bot);position:relative;z-index:10}
+.bnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;cursor:pointer;font-size:10px;font-weight:500;color:var(--text3);border-top:2px solid transparent;transition:all .2s;gap:3px;user-select:none}
+.bnav.active{color:var(--primary);border-top-color:var(--primary)}
+.bnav-icon{font-size:20px;line-height:1}
+
+/* COMMON */
+.section-pad{padding:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.card-title{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
+.divider{height:1px;background:var(--border);margin:10px 0}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0c0c20 0%,#10101e 60%,#080810 100%);padding:16px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;flex-shrink:0}
+.hero::after{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;background:radial-gradient(circle,rgba(108,99,255,.12) 0%,transparent 70%);pointer-events:none}
+.hero-week{font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--primary);text-transform:uppercase;margin-bottom:4px}
+.hero-title{font-size:20px;font-weight:700;line-height:1.15;letter-spacing:-.02em;margin-bottom:4px}
+.hero-sub{font-size:12px;color:var(--text2)}
+.hero-progress{margin-top:12px}
+.hero-prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.hero-prog-label{font-size:11px;color:var(--text2)}
+.hero-prog-pct{font-size:12px;font-weight:700;font-family:var(--mono);color:var(--primary)}
+.prog-bar-bg{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.prog-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--teal));transition:width .6s ease}
+
+/* TODAY CARD */
+.today-card{background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(0,212,170,.05));border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.today-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--primary),var(--teal))}
+.today-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:6px}
+.today-name{font-size:18px;font-weight:700;margin-bottom:3px}
+.today-meta{font-size:12px;color:var(--text2);margin-bottom:12px}
+.today-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600;transition:all .18s;user-select:none;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.btn-success{background:var(--green-dim);border:1px solid rgba(74,222,128,.3);color:var(--green)}
+.btn-sm{padding:7px 12px;font-size:11px}
+.btn-full{width:100%}
+
+/* TIMER */
+.timer-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.timer-display{text-align:center;padding:16px 0 8px}
+.timer-time{font-size:52px;font-weight:700;font-family:var(--mono);color:var(--primary);letter-spacing:-.02em;line-height:1}
+.timer-label{font-size:11px;color:var(--text2);margin-top:6px;font-weight:500}
+.timer-start-info{display:flex;justify-content:center;gap:16px;margin-top:8px}
+.timer-info-item{text-align:center}
+.timer-info-val{font-size:13px;font-weight:700;font-family:var(--mono)}
+.timer-info-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+.timer-controls{display:flex;gap:8px;margin-top:12px}
+
+/* STATS STRIP */
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;text-align:center}
+.stat-val{font-size:18px;font-weight:700;font-family:var(--mono);line-height:1}
+.stat-lbl{font-size:9px;color:var(--text2);margin-top:2px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+
+/* EXERCISE LIST */
+.ex-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;transition:border-color .2s}
+.ex-card.done{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.03)}
+.ex-header{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none}
+.ex-check{width:26px;height:26px;border-radius:7px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s;cursor:pointer}
+.ex-card.done .ex-check{background:var(--green);border-color:var(--green);color:#000}
+.ex-num{font-size:10px;font-weight:700;font-family:var(--mono);color:var(--text3);flex-shrink:0;width:16px}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.ex-card.done .ex-name{color:var(--text2);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25)}
+.ex-meta{font-size:11px;color:var(--text2)}
+.ex-arrow{font-size:12px;color:var(--text3);transition:transform .2s;flex-shrink:0}
+.ex-card.open .ex-arrow{transform:rotate(180deg)}
+.ex-body{display:none;border-top:1px solid var(--border);padding:12px 14px}
+.ex-card.open .ex-body{display:block}
+.ex-prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.prog-box{background:var(--card2);border-radius:var(--radius-sm);padding:8px 10px}
+.prog-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.prog-val{font-size:13px;font-weight:700;font-family:var(--mono)}
+
+/* WEEK TABS */
+.week-tabs{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border-bottom:1px solid var(--border)}
+.wtab{padding:10px 4px;text-align:center;cursor:pointer;font-size:11px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s;user-select:none}
+.wtab.active{color:var(--text);border-bottom-color:var(--primary)}
+.wtab-day{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:1px}
+.wtab-name{font-size:13px;font-weight:700}
+.wtab.active .wtab-day{color:var(--primary)}
+
+/* PHASE HEADERS */
+.phase-header{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.phase-1-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--teal))}
+.phase-2-header::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--amber),var(--coral))}
+.phase-badge{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:99px;display:inline-block;margin-bottom:6px}
+.phase-title{font-size:16px;font-weight:700;margin-bottom:3px}
+.phase-sub{font-size:11px;color:var(--text2)}
+.week-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.week-row:last-child{border-bottom:none}
+.week-num{font-size:11px;font-weight:700;font-family:var(--mono);color:var(--text3);width:40px;flex-shrink:0}
+.week-info{flex:1}
+.week-name{font-size:12px;font-weight:600;margin-bottom:1px}
+.week-desc{font-size:10px;color:var(--text2)}
+.week-status{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.week-done{background:var(--green-dim);color:var(--green)}
+.week-current{background:var(--primary-dim);color:var(--primary);animation:pulse 2s infinite}
+.week-future{background:var(--border);color:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* STATISTICS */
+.big-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.big-stat{display:flex;flex-direction:column;align-items:center;padding:14px;background:var(--card)}
+.big-stat-val{font-size:32px;font-weight:700;font-family:var(--mono);line-height:1}
+.big-stat-lbl{font-size:11px;color:var(--text2);margin-top:3px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.stat-card-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.heatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.hm-cell{aspect-ratio:1;border-radius:3px;background:var(--border);transition:background .2s}
+.hm-cell.done{background:var(--primary)}
+.hm-cell.rest{background:var(--border2)}
+.hm-cell.today{outline:2px solid var(--teal);outline-offset:1px}
+.hm-legend{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:10px;color:var(--text2);flex-wrap:wrap}
+.hm-sq{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--primary),rgba(108,99,255,.4));min-height:2px;transition:height .5s ease}
+.bar-lbl{font-size:9px;color:var(--text3);text-transform:uppercase}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.info-row:last-child{border-bottom:none}
+.info-lbl{color:var(--text2)}
+.info-val{font-weight:600;font-family:var(--mono);font-size:12px}
+
+/* VITAMINS */
+.vitamin-header{background:rgba(0,212,170,.05);border:1px solid rgba(0,212,170,.2);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.vitamin-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;user-select:none}
+.vitamin-card.done{border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.03)}
+.vitamin-icon{font-size:24px;flex-shrink:0}
+.vitamin-info{flex:1}
+.vitamin-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.vitamin-desc{font-size:11px;color:var(--text2)}
+.vitamin-time{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--card2);color:var(--text3);margin-top:4px;display:inline-block;margin-right:4px}
+.vitamin-check{width:28px;height:28px;border-radius:8px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;transition:all .2s}
+.vitamin-card.done .vitamin-check{background:var(--green);border-color:var(--green);color:#000}
+.vitamin-prog-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:10px}
+.vitamin-prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--green),var(--teal));transition:width .4s}
+
+/* REST DAY */
+.rest-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.rest-tip{background:rgba(255,179,71,.05);border:1px solid rgba(255,179,71,.2);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+
+/* NOTIFICATION */
+.notif-banner{position:fixed;top:8px;left:12px;right:12px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 14px;z-index:9999;display:flex;align-items:center;gap:10px;transform:translateY(-80px);opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
+.notif-banner.show{transform:translateY(0);opacity:1;pointer-events:auto}
+.notif-icon{font-size:20px;flex-shrink:0}
+.notif-text{flex:1;font-size:12px}
+.notif-title{font-weight:600;margin-bottom:1px}
+.notif-sub{color:var(--text2);font-size:11px}
+.notif-close{font-size:16px;color:var(--text2);cursor:pointer;padding:4px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;display:none;align-items:flex-end;backdrop-filter:blur(6px)}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + var(--safe-bot));width:100%;max-height:85vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:99px;margin:0 auto 18px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:12px;color:var(--text2);margin-bottom:16px}
+.timer-big{font-size:60px;font-weight:700;font-family:var(--mono);color:var(--primary);text-align:center;letter-spacing:-.02em;line-height:1;margin:16px 0}
+
+/* DONE BADGE */
+.done-badge{background:var(--green-dim);border:1px solid rgba(74,222,128,.3);color:var(--green);border-radius:var(--radius-sm);padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600}
+
+/* SCROLL FIX */
+::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-logo">PPL<span>Pro</span></div>
+    <div class="top-date" id="topDate"></div>
+    <div class="top-streak" id="topStreak">🔥 0</div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- ===== BUGUN ===== -->
+    <div class="page active" id="page-today">
+      <div class="hero">
+        <div class="hero-week" id="heroWeek"></div>
+        <div class="hero-title" id="heroTitle">Yuklanmoqda...</div>
+        <div class="hero-sub" id="heroSub"></div>
+        <div class="hero-progress">
+          <div class="hero-prog-row">
+            <span class="hero-prog-label">60 kunlik progress</span>
+            <span class="hero-prog-pct" id="heroPct">0%</span>
+          </div>
+          <div class="prog-bar-bg"><div class="prog-bar-fill" id="heroBar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="section-pad">
+        <div id="todayWorkoutCard"></div>
+        <div id="timerCard" style="display:none"></div>
+        <div id="exerciseList"></div>
+        <div id="restDayContent" style="display:none">
+          <div class="rest-card">
+            <div class="card-title">💤 Dam olish kuni</div>
+            <div class="info-row"><span class="info-lbl">Yengil yurish</span><span class="info-val">20–30 daq</span></div>
+            <div class="info-row"><span class="info-lbl">Cho'zish / mobility</span><span class="info-val">10–15 daq</span></div>
+            <div class="info-row"><span class="info-lbl">Suv</span><span class="info-val">2L+</span></div>
+            <div class="info-row"><span class="info-lbl">Uyqu</span><span class="info-val">7–9 soat</span></div>
+          </div>
+          <div class="rest-tip">
+            <div class="card-title" style="color:var(--amber)">🧠 Eslatma</div>
+            <div style="font-size:12px;color:var(--text2);line-height:1.65">Mushak zalda emas, <strong style="color:var(--text)">uyquda o'sadi</strong>. Dam olish progressingning muhim qismi. Bu kunni to'g'ri o'tkaz.</div>
+          </div>
+        </div>
+        <div class="stats-strip" id="statsStrip">
+          <div class="stat-box"><div class="stat-val" id="statDone" style="color:var(--green)">—</div><div class="stat-lbl">Bajarildi</div></div>
+          <div class="stat-box"><div class="stat-val" id="statTotal" style="color:var(--text2)">—</div><div class="stat-lbl">Mashq</div></div>
+          <div class="stat-box"><div class="stat-val" id="statTime" style="color:var(--teal)">—</div><div class="stat-lbl">Daqiqa</div></div>
+          <div class="stat-box"><div class="stat-val" id="statStreak" style="color:var(--amber)">0</div><div class="stat-lbl">🔥 Streak</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PLAN ===== -->
+    <div class="page" id="page-plan">
+      <div class="section-pad">
+        <div class="phase-header phase-1-header">
+          <span class="phase-badge" style="background:var(--primary-dim);color:var(--primary)">1-OY · HAFTA 1–4</span>
+          <div class="phase-title">Asosiy Faza</div>
+          <div class="phase-sub">Texnika + bazaviy kuch. 3×6–10 takror.</div>
+          <div class="divider"></div>
+          <div id="phase1Weeks"></div>
+        </div>
+        <div class="phase-header phase-2-header">
+          <span class="phase-badge" style="background:var(--amber-dim);color:var(--amber)">2-OY · HAFTA 5–8</span>
+          <div class="phase-title">Intensiv Faza</div>
+          <div class="phase-sub">Og'irlik + hajm oshadi. 4×5–8 takror.</div>
+          <div class="divider"></div>
+          <div id="phase2Weeks"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 PPL Tuzilmasi</div>
+          <div class="week-tabs">
+            <div class="wtab active" onclick="showPlanDay('push',this)">
+              <div class="wtab-day">Du/Pay</div>
+              <div class="wtab-name">PUSH</div>
+            </div>
+            <div class="wtab" onclick="showPlanDay('pull',this)">
+              <div class="wtab-day">Se/Ju</div>
+              <div class="wtab-name">PULL</div>
+            </div>
+            <div class="wtab" onclick="showPlanDay('legs',this)">
+              <div class="wtab-day">Chor/Shan</div>
+              <div class="wtab-name">LEGS</div>
+            </div>
+          </div>
+          <div id="planDayContent" style="padding-top:10px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== STATISTIKA ===== -->
+    <div class="page" id="page-stats">
+      <div class="section-pad">
+        <div class="big-stats-grid">
+          <div class="big-stat"><div class="big-stat-val" id="stTotalW" style="color:var(--primary)">0</div><div class="big-stat-lbl">Trenirovka</div></div>
+          <div class="big-stat"><div class="big-stat-val" id="stStreak" style="color:var(--amber)">0</div><div class="big-stat-lbl">🔥 Streak</div></div>
+          <div class="big-stat"><div class="big-stat-val" id="stTotalMin" style="color:var(--teal)">0</div><div class="big-stat-lbl">Daqiqa</div></div>
+          <div class="big-stat"><div class="big-stat-val" id="stCompPct" style="color:var(--green)">0%</div><div class="big-stat-lbl">60 kundan</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">📅 60 Kunlik faollik</div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="hm-legend">
+            <div class="hm-sq" style="background:var(--border)"></div><span>Trenirovka yo'q</span>
+            <div class="hm-sq" style="background:var(--border2);margin-left:6px"></div><span>Dam</span>
+            <div class="hm-sq" style="background:var(--primary);margin-left:6px"></div><span>Bajarildi</span>
+            <div class="hm-sq" style="outline:2px solid var(--teal);outline-offset:1px;margin-left:6px"></div><span>Bugun</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">📊 Haftalik trenirovkalar (so'nggi 8 hafta)</div>
+          <div class="bar-chart" id="barChart"></div>
+        </div>
+        <div class="stat-card">
+          <div class="card-title">Batafsil ko'rsatkichlar</div>
+          <div class="info-row"><span class="info-lbl">Jami trenirovka</span><span class="info-val" id="stD1">0</span></div>
+          <div class="info-row"><span class="info-lbl">Jami vaqt</span><span class="info-val" id="stD2">0 soat</span></div>
+          <div class="info-row"><span class="info-lbl">O'rtacha trenirovka</span><span class="info-val" id="stD3">0 daq</span></div>
+          <div class="info-row"><span class="info-lbl">Eng uzun trenirovka</span><span class="info-val" id="stD4">0 daq</span></div>
+          <div class="info-row"><span class="info-lbl">Bu hafta</span><span class="info-val" id="stD5">0 / 3</span></div>
+          <div class="info-row"><span class="info-lbl">Vitamin bajarish %</span><span class="info-val" id="stD6">0%</span></div>
+          <div class="info-row"><span class="info-lbl">Joriy hafta</span><span class="info-val" id="stD7">1-hafta</span></div>
+          <div class="info-row"><span class="info-lbl">Faza</span><span class="info-val" id="stD8">Asosiy</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== VITAMINLAR ===== -->
+    <div class="page" id="page-vitamins">
+      <div class="section-pad">
+        <div class="vitamin-header">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:26px">💊</div>
+            <div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:2px">Bugungi vitaminlar</div>
+              <div style="font-size:11px;color:var(--text2)" id="vitaminDate"></div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--teal)" id="vitaminPct">0%</div>
+              <div style="font-size:10px;color:var(--text2)" id="vitaminDoneCount">0/5</div>
+            </div>
+          </div>
+          <div class="vitamin-prog-bar" style="margin-top:12px">
+            <div class="vitamin-prog-fill" id="vitaminProgFill" style="width:0%"></div>
+          </div>
+        </div>
+        <div id="vitaminList"></div>
+        <div class="card" style="margin-top:4px;background:rgba(108,99,255,.05);border-color:rgba(108,99,255,.2)">
+          <div class="card-title" style="color:var(--primary)">📌 Qabul qilish tartibi</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.7">
+            🌅 <strong style="color:var(--text)">Ertalab:</strong> D3 + ovqat bilan<br>
+            🐟 <strong style="color:var(--text)">Tushlik keyin:</strong> Omega-3 + Sink<br>
+            💪 <strong style="color:var(--text)">Trenirovka keyin:</strong> Kreatin (5g + suv)<br>
+            🌙 <strong style="color:var(--text)">Uxlashdan 30 daq oldin:</strong> Magniy
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="bnav active" onclick="showPage('today','nav-today')" id="nav-today"><div class="bnav-icon">🏠</div>Bugun</div>
+    <div class="bnav" onclick="showPage('plan','nav-plan')" id="nav-plan"><div class="bnav-icon">📅</div>Plan</div>
+    <div class="bnav" onclick="showPage('stats','nav-stats')" id="nav-stats"><div class="bnav-icon">📊</div>Statistika</div>
+    <div class="bnav" onclick="showPage('vitamins','nav-vitamins')" id="nav-vitamins"><div class="bnav-icon">💊</div>Vitaminlar</div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- FINISH MODAL -->
+<div class="modal-overlay" id="finishModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Trenirovka tugadi! 🏆</div>
+    <div class="modal-sub" id="modalSub">Natijangiz saqlanyapti...</div>
+    <div class="timer-big" id="modalTime">00:00</div>
+    <div style="background:var(--card);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px" id="modalDetails"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:2" onclick="saveWorkout()">✅ Saqlash</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeFinishModal()">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif-banner" id="notifBanner">
+  <div class="notif-icon" id="notifIcon">💪</div>
+  <div class="notif-text">
+    <div class="notif-title" id="notifTitle"></div>
+    <div class="notif-sub" id="notifSub"></div>
+  </div>
+  <div class="notif-close" onclick="closeNotif()">✕</div>
+</div>
+
+<script>
+// ============================================================
+// TELEGRAM WEB APP INIT
+// ============================================================
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  // Apply Telegram theme if available
+  if (tg.colorScheme === 'light') {
+    // Keep dark theme for fitness aesthetic
+  }
+  // Haptic feedback helper
+  window.haptic = (type) => {
+    try { tg.HapticFeedback && tg.HapticFeedback.impactOccurred(type); } catch(e){}
+  };
+} else {
+  window.haptic = () => {};
+}
+
+// ============================================================
+// STORAGE KEYS
+// ============================================================
+const KEYS = {
+  START: 'ppl_start_date',
+  WORKOUTS: 'ppl_workouts',    // { "2025-01-01": { type, duration, startTime, endTime, timestamp } }
+  VITAMINS: 'ppl_vitamins',    // { "2025-01-01": { v1:true, v2:false, ... } }
+  EXERCISES: 'ppl_exercises',  // { "2025-01-01": { p1:true, p2:false, ... } }
+  TIMER: 'ppl_timer_state',    // { running, startTs, elapsed, workoutType }
+};
+
+// ============================================================
+// STORAGE HELPERS
+// ============================================================
+const load = (key, def) => { try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; } };
+const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){} };
+
+// ============================================================
+// DATE HELPERS
+// ============================================================
+const UZ_DAYS = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+const UZ_MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function dateStr(d)  { return d.toISOString().split('T')[0]; }
+
+function formatDateFull(d) {
+  return `${UZ_DAYS[d.getDay()]}, ${d.getDate()} ${UZ_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatTime(d) {
+  return d.toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'});
+}
+
+function getStartDate() {
+  let s = load(KEYS.START, null);
+  if (!s) { s = todayStr(); save(KEYS.START, s); }
+  return new Date(s + 'T00:00:00');
+}
+function getCurrentDay() {
+  const start = getStartDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.max(1, Math.floor((today - start) / 86400000) + 1);
+}
+function getCurrentWeek() { return Math.ceil(getCurrentDay() / 7); }
+function getPhase() { return getCurrentWeek() <= 4 ? 1 : 2; }
+
+// Workout days: Mon=1 Push, Wed=3 Pull, Fri=5 Legs, Sat=6 Push, Sun=0 Pull (optional 2x)
+// Simple PPL: Mon Push, Tue Pull, Wed Legs, Thu Push, Fri Pull, Sat Legs, Sun rest
+const DOW_WORKOUT = { 1:'push', 2:'pull', 3:'legs', 4:'push', 5:'pull', 6:'legs' };
+
+function getWorkoutForDate(date) {
+  return DOW_WORKOUT[date.getDay()] || null;
+}
+
+// ============================================================
+// PLAN DATA
+// ============================================================
+const PHASES_DATA = [
+  { week:1, name:'Asosiy 1-hafta', desc:'Texnikani o\'rnatish, 50–60% og\'irlik', phase:1 },
+  { week:2, name:'Asosiy 2-hafta', desc:'Og\'irlikni sekin oshirish +2.5 kg', phase:1 },
+  { week:3, name:'Asosiy 3-hafta', desc:'Hajmni oshirish, texnikani mustahkamlash', phase:1 },
+  { week:4, name:'Deload hafta', desc:'70% og\'irlik — tana tiklanadi', phase:1 },
+  { week:5, name:'Intensiv 1-hafta', desc:'Og\'irlikni keskin oshirish', phase:2 },
+  { week:6, name:'Intensiv 2-hafta', desc:'4×5–8 rejimiga o\'tish', phase:2 },
+  { week:7, name:'Intensiv 3-hafta', desc:'Maksimal kuch + hajm', phase:2 },
+  { week:8, name:'Test hafta', desc:'1RM sinov, natijalarni o\'lchash', phase:2 },
+];
+
+const WORKOUTS_DATA = {
+  push: {
+    name:'PUSH', fullName:'PUSH KUN', emoji:'💪',
+    color:'var(--primary)', colorDim:'var(--primary-dim)',
+    muscles:'Ko\'krak · Oldingi yelka · Triseps',
+    exercises:[
+      { id:'p1', name:'Bench Press', sets:'4×6–8', rest:'2–3 daq', weight:'50–60 kg', note:'Asosiy mashq. Bel taxtaga, yelka pichoqlari mahkam. Sekin pastga (3 sek), portlab yuqoriga.' },
+      { id:'p2', name:'Incline DB Press', sets:'3×8–10', rest:'90 sek', weight:'14–18 kg', note:'30–45° burchak. Yuqori ko\'krak uchun. Tirsak 45° da.' },
+      { id:'p3', name:'Overhead Press', sets:'3×8–10', rest:'2 daq', weight:'30–40 kg', note:'Yelkani to\'g\'ri ushla. Bel egilmasin, yadro tarang.' },
+      { id:'p4', name:'Cable Lateral Raise', sets:'3×12–15', rest:'60 sek', weight:'8–12 kg', note:'Yelka darajasiga qadar ko\'tar. Oldinga engashib ko\'tar.' },
+      { id:'p5', name:'Tricep Pushdown', sets:'3×12–15', rest:'60 sek', weight:'15–25 kg', note:'Tirsak yonida mahkam. To\'liq yoz — to\'liq bukur.' },
+      { id:'p6', name:'DB Fly', sets:'3×12', rest:'60 sek', weight:'10–14 kg', note:'Ko\'krak cho\'zilishi. Sekin pastga, qo\'llar oval shaklda.' },
+    ]
+  },
+  pull: {
+    name:'PULL', fullName:'PULL KUN', emoji:'🦾',
+    color:'var(--teal)', colorDim:'var(--teal-dim)',
+    muscles:'Orqa · Biseps · Orqa yelka',
+    exercises:[
+      { id:'l1', name:'Deadlift', sets:'4×5', rest:'3 daq', weight:'60–80 kg', note:'Eng muhim mashq. Bel to\'g\'ri, ko\'krak oldinda. Boldir suyagiga tegib tursin.' },
+      { id:'l2', name:'Barbell Row', sets:'3×6–8', rest:'2 daq', weight:'40–50 kg', note:'45° oldinga eg, bel to\'g\'ri. Qorin darajasiga tort, tirsak orqaga.' },
+      { id:'l3', name:'Lat Pulldown', sets:'3×10–12', rest:'90 sek', weight:'40–50 kg', note:'Keng tutqich. Ko\'kragingni ozroq qayir, pastga tortishda.' },
+      { id:'l4', name:'Seated Cable Row', sets:'3×10–12', rest:'90 sek', weight:'35–45 kg', note:'Ko\'krak to\'g\'ri. Tirsakni maksimal orqaga tort.' },
+      { id:'l5', name:'Face Pull', sets:'3×15', rest:'60 sek', weight:'15–25 kg', note:'Yelka salomatligi uchun muhim! Yuqoriga va orqaga tort.' },
+      { id:'l6', name:'Barbell Curl', sets:'3×10–12', rest:'60 sek', weight:'20–30 kg', note:'Tirsak yonida mahkam. To\'liq cho\'zilish — to\'liq bukish.' },
+    ]
+  },
+  legs: {
+    name:'LEGS', fullName:'LEGS KUN', emoji:'🦵',
+    color:'var(--amber)', colorDim:'var(--amber-dim)',
+    muscles:'Son · Orqa son · Boldir · Yadro',
+    exercises:[
+      { id:'g1', name:'Squat', sets:'4×6–8', rest:'3 daq', weight:'60–80 kg', note:'Eng katta mashq. Tizza oyoq barmog\'i yo\'nalishida. Dumba pastga, ko\'krak yuqori.' },
+      { id:'g2', name:'Romanian Deadlift', sets:'3×8–10', rest:'2 daq', weight:'50–60 kg', note:'Orqa son uchun. Bel to\'g\'ri, dumba orqaga suriladi. Hamstringni his et.' },
+      { id:'g3', name:'Leg Press', sets:'3×10–12', rest:'90 sek', weight:'80–120 kg', note:'Oyoq keng qo\'yilsin. Tizza ichga tushmаsin — tashqariga.' },
+      { id:'g4', name:'Leg Curl', sets:'3×12–15', rest:'60 sek', weight:'25–40 kg', note:'Orqa son izolyatsiyasi. Sekin pastga (2 sek). To\'liq cho\'zilish.' },
+      { id:'g5', name:'Calf Raise', sets:'4×15–20', rest:'60 sek', weight:'50–80 kg', note:'To\'liq cho\'zilish muhim! Pastda 1 sek to\'xta, yuqorida siqib tur.' },
+      { id:'g6', name:'Plank', sets:'3×60 sek', rest:'45 sek', weight:'—', note:'Yadro kuchi. Bel tekis liniyada — na yuqori na pastga.' },
+    ]
+  }
+};
+
+const VITAMINS_LIST = [
+  { id:'v1', name:'D3 Vitamini', icon:'☀️', desc:'Suyak, immunitet, testosteron uchun muhim', time:'Ertalab ovqat bilan', dose:'2000–5000 IU' },
+  { id:'v2', name:'Omega-3', icon:'🐟', desc:'Bo\'g\'im, yurak, yallig\'lanishga qarshi', time:'Tushlik keyin', dose:'2–4 kapsul' },
+  { id:'v3', name:'Magniy', icon:'⚡', desc:'Dam olish, uyqu, mushak tiklanishi', time:'Uxlashdan 30 daq oldin', dose:'300–400 mg' },
+  { id:'v4', name:'Kreatin', icon:'💪', desc:'Kuch va mushak o\'sishi uchun tavsiya etiladi', time:'Trenirovkadan keyin', dose:'5g suv bilan' },
+  { id:'v5', name:'Sink (Zinc)', icon:'🛡️', desc:'Testosteron, immunitet va tiklanish', time:'Ovqat bilan', dose:'15–30 mg' },
+];
+
+// ============================================================
+// TIMER STATE
+// ============================================================
+let timerState = {
+  running: false,
+  startTs: null,       // timestamp when timer started
+  elapsed: 0,          // seconds accumulated before pause
+  workoutStartTs: null, // when user first clicked "Boshlash"
+  interval: null,
+};
+
+function timerGetElapsed() {
+  if (timerState.running && timerState.startTs) {
+    return timerState.elapsed + Math.floor((Date.now() - timerState.startTs) / 1000);
+  }
+  return timerState.elapsed;
+}
+
+function timerFormat(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  return `${pad(m)}:${pad(s)}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+
+// ============================================================
+// CURRENT WORKOUT TYPE (global)
+// ============================================================
+let g_workoutType = null;
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(name, navId) {
+  haptic('light');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.bnav').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById(navId).classList.add('active');
+  if (name === 'stats') renderStats();
+  if (name === 'vitamins') renderVitamins();
+  if (name === 'plan') renderPlan();
+}
+
+// ============================================================
+// RENDER TODAY
+// ============================================================
+function renderToday() {
+  const today = new Date();
+  const wType = getWorkoutForDate(today);
+  const dayNum = getCurrentDay();
+  const weekNum = getCurrentWeek();
+  const phase = getPhase();
+  const phaseName = phase === 1 ? 'ASOSIY FAZA' : 'INTENSIV FAZA';
+
+  g_workoutType = wType;
+
+  // Hero section
+  document.getElementById('heroWeek').textContent = `${weekNum}-HAFTA · ${phase}-OY · ${phaseName}`;
+  document.getElementById('topDate').textContent = formatDateFull(today);
+
+  const pct = Math.min(100, Math.round(((dayNum - 1) / 60) * 100));
+  document.getElementById('heroPct').textContent = pct + '%';
+  document.getElementById('heroBar').style.width = pct + '%';
+
+  const workouts = load(KEYS.WORKOUTS, {});
+  const todayDone = workouts[todayStr()];
+
+  if (wType) {
+    const w = WORKOUTS_DATA[wType];
+    document.getElementById('heroTitle').textContent = `${w.emoji} ${w.fullName}`;
+    document.getElementById('heroSub').textContent = w.muscles;
+
+    // Today card
+    if (todayDone) {
+      document.getElementById('todayWorkoutCard').innerHTML = `
+        <div class="today-card">
+          <div class="today-label" style="color:var(--green)">✅ Bugun bajarildi!</div>
+          <div class="today-name">${w.emoji} ${w.fullName}</div>
+          <div class="today-meta">${w.muscles} · ${w.exercises.length} mashq</div>
+          <div class="today-actions" style="margin-top:8px">
+            <div class="done-badge">
+              ⏱ ${todayDone.duration} daqiqa · ${todayDone.startTime} → ${todayDone.endTime}
+            </div>
+          </div>
+        </div>`;
+      // Hide timer card if workout saved
+      document.getElementById('timerCard').style.display = 'none';
+    } else {
+      document.getElementById('todayWorkoutCard').innerHTML = `
+        <div class="today-card">
+          <div class="today-label">💪 Bugungi trenirovka</div>
+          <div class="today-name">${w.emoji} ${w.fullName}</div>
+          <div class="today-meta">${w.muscles} · ${w.exercises.length} mashq</div>
+          <div class="today-actions">
+            <button class="btn btn-primary" onclick="startWorkout()">▶ Boshlash</button>
+            <button class="btn btn-outline btn-sm" onclick="markAllDone()">✓ Barchasini belgilash</button>
+          </div>
+        </div>`;
+      // Restore timer if was running
+      renderTimerCard();
+    }
+
+    document.getElementById('restDayContent').style.display = 'none';
+    document.getElementById('exerciseList').style.display = 'block';
+    renderExercises(wType);
+  } else {
+    document.getElementById('heroTitle').textContent = 'Dam olish kuni 😴';
+    document.getElementById('heroSub').textContent = 'Yengil yurish, cho\'zish, uyqu';
+    document.getElementById('todayWorkoutCard').innerHTML = '';
+    document.getElementById('timerCard').style.display = 'none';
+    document.getElementById('exerciseList').style.display = 'none';
+    document.getElementById('restDayContent').style.display = 'block';
+  }
+
+  updateStatsStrip();
+}
+
+function renderTimerCard() {
+  const tc = document.getElementById('timerCard');
+  if (!g_workoutType) { tc.style.display = 'none'; return; }
+  const workouts = load(KEYS.WORKOUTS, {});
+  if (workouts[todayStr()]) { tc.style.display = 'none'; return; }
+
+  tc.style.display = 'block';
+  const elapsed = timerGetElapsed();
+  const timeStr = timerFormat(elapsed);
+  const startStr = timerState.workoutStartTs ? formatTime(new Date(timerState.workoutStartTs)) : '—';
+
+  tc.innerHTML = `
+    <div class="timer-card">
+      <div class="card-title">⏱ Trenirovka vaqti</div>
+      <div class="timer-display">
+        <div class="timer-time" id="timerDisplay">${timeStr}</div>
+        <div class="timer-label" id="timerStatus">${timerState.running ? '🟢 Trenirovka davom etmoqda...' : (elapsed > 0 ? '⏸ Pauza' : 'Tayyor')}</div>
+      </div>
+      ${timerState.workoutStartTs ? `
+      <div class="timer-start-info">
+        <div class="timer-info-item">
+          <div class="timer-info-val" style="color:var(--teal)">${startStr}</div>
+          <div class="timer-info-lbl">Boshlandi</div>
+        </div>
+        <div class="timer-info-item">
+          <div class="timer-info-val" style="color:var(--amber)">${elapsed > 0 ? Math.floor(elapsed/60) + ' daq' : '0 daq'}</div>
+          <div class="timer-info-lbl">O'tgan vaqt</div>
+        </div>
+      </div>` : ''}
+      <div class="timer-controls">
+        ${timerState.running
+          ? `<button class="btn btn-outline" style="flex:1" onclick="pauseTimer()">⏸ Pauza</button>`
+          : `<button class="btn btn-primary" style="flex:1" onclick="${elapsed > 0 ? 'resumeTimer()' : 'startTimer()'}">${elapsed > 0 ? '▶ Davom' : '▶ Boshlash'}</button>`
+        }
+        ${elapsed > 0 ? `<button class="btn btn-success" style="flex:1" onclick="openFinishModal()">🏁 Tugatish</button>` : ''}
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// TIMER FUNCTIONS
+// ============================================================
+function startWorkout() {
+  haptic('medium');
+  timerState.workoutStartTs = Date.now();
+  timerState.elapsed = 0;
+  startTimer();
+  // Update button
+  const card = document.getElementById('todayWorkoutCard');
+  const btn = card.querySelector('button');
+  if (btn) btn.disabled = true;
+}
+
+function startTimer() {
+  if (timerState.running) return;
+  timerState.running = true;
+  if (!timerState.workoutStartTs) timerState.workoutStartTs = Date.now();
+  timerState.startTs = Date.now();
+  timerState.interval = setInterval(tickTimer, 1000);
+  renderTimerCard();
+}
+
+function resumeTimer() {
+  haptic('light');
+  startTimer();
+}
+
+function pauseTimer() {
+  haptic('light');
+  if (!timerState.running) return;
+  timerState.elapsed += Math.floor((Date.now() - timerState.startTs) / 1000);
+  timerState.running = false;
+  clearInterval(timerState.interval);
+  renderTimerCard();
+}
+
+function tickTimer() {
+  const el = document.getElementById('timerDisplay');
+  if (el) el.textContent = timerFormat(timerGetElapsed());
+}
+
+function openFinishModal() {
+  haptic('medium');
+  if (timerState.running) pauseTimer();
+  const elapsed = timerState.elapsed;
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  document.getElementById('modalTime').textContent = `${pad(mins)}:${pad(secs)}`;
+  const endTime = new Date();
+  const startTime = new Date(timerState.workoutStartTs);
+  document.getElementById('modalSub').textContent = `${WORKOUTS_DATA[g_workoutType]?.fullName || ''} — natijangizni saqlang`;
+  document.getElementById('modalDetails').innerHTML = `
+    <div style="text-align:center;padding:6px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">BOSHLANDI</div>
+      <div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--teal)">${formatTime(startTime)}</div>
+    </div>
+    <div style="text-align:center;padding:6px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">TUGALDI</div>
+      <div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--amber)">${formatTime(endTime)}</div>
+    </div>
+    <div style="text-align:center;padding:6px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">JAMI VAQT</div>
+      <div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--primary)">${mins} daq ${secs} sek</div>
+    </div>
+    <div style="text-align:center;padding:6px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:3px">TRENIROVKA</div>
+      <div style="font-size:14px;font-weight:700;color:var(--green)">${WORKOUTS_DATA[g_workoutType]?.name || '—'}</div>
+    </div>`;
+  document.getElementById('finishModal').classList.add('active');
+}
+
+function saveWorkout() {
+  haptic('success' in (tg?.HapticFeedback || {}) ? 'success' : 'medium');
+  const elapsed = timerState.elapsed;
+  const minutes = Math.max(1, Math.floor(elapsed / 60));
+  const startTime = new Date(timerState.workoutStartTs);
+  const endTime = new Date();
+
+  const workouts = load(KEYS.WORKOUTS, {});
+  workouts[todayStr()] = {
+    type: g_workoutType,
+    duration: minutes,
+    elapsed: elapsed,
+    timestamp: Date.now(),
+    startTime: formatTime(startTime),
+    endTime: formatTime(endTime),
+  };
+  save(KEYS.WORKOUTS, workouts);
+
+  // Reset timer
+  clearInterval(timerState.interval);
+  timerState = { running:false, startTs:null, elapsed:0, workoutStartTs:null, interval:null };
+
+  closeFinishModal();
+  renderToday();
+  showNotif('🏆', `Trenirovka saqlandi!`, `${minutes} daqiqa · ${WORKOUTS_DATA[g_workoutType]?.fullName || ''}`);
+}
+
+function closeFinishModal() {
+  document.getElementById('finishModal').classList.remove('active');
+}
+
+// ============================================================
+// EXERCISE LIST
+// ============================================================
+function renderExercises(type) {
+  const w = WORKOUTS_DATA[type];
+  const exData = load(KEYS.EXERCISES, {});
+  const todayKey = todayStr();
+  const todayEx = exData[todayKey] || {};
+  const phase = getPhase();
+
+  let html = w.exercises.map((ex, i) => {
+    const done = !!todayEx[ex.id];
+    const phaseNote = phase === 1
+      ? `<div style="margin-top:8px;padding:8px;background:var(--primary-dim);border-radius:var(--radius-sm);font-size:11px;color:var(--primary)">📘 1-oy: Texnikaga e'tibor. 60–70% og'irlik. 3×8–10 takror.</div>`
+      : `<div style="margin-top:8px;padding:8px;background:var(--amber-dim);border-radius:var(--radius-sm);font-size:11px;color:var(--amber)">🔥 2-oy: Og'irlikni oshir! 4×5–8 takror. Har 2 haftada +2.5–5 kg.</div>`;
+    return `
+    <div class="ex-card${done?' done':''}" id="excard-${ex.id}">
+      <div class="ex-header" onclick="toggleEx('${ex.id}')">
+        <div class="ex-check" onclick="event.stopPropagation();toggleExDone('${ex.id}','${type}')">${done?'✓':''}</div>
+        <div class="ex-num">${i+1}</div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-meta">${ex.sets} · Dam: ${ex.rest} · ${ex.weight}</div>
+        </div>
+        <div class="ex-arrow">▾</div>
+      </div>
+      <div class="ex-body">
+        <div class="ex-prog-grid">
+          <div class="prog-box"><div class="prog-lbl">Og'irlik</div><div class="prog-val" style="color:${w.color}">${ex.weight}</div></div>
+          <div class="prog-box"><div class="prog-lbl">Set × Takror</div><div class="prog-val">${ex.sets}</div></div>
+          <div class="prog-box"><div class="prog-lbl">Dam olish</div><div class="prog-val">${ex.rest}</div></div>
+          <div class="prog-box"><div class="prog-lbl">Faza</div><div class="prog-val" style="font-size:11px">${phase === 1 ? 'Asosiy' : 'Intensiv'}</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;padding:8px;background:var(--card2);border-radius:var(--radius-sm)">${ex.note}</div>
+        ${phaseNote}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('exerciseList').innerHTML = html;
+  updateStatsStrip();
+}
+
+function toggleEx(id) {
+  haptic('light');
+  const card = document.getElementById('excard-' + id);
+  card.classList.toggle('open');
+}
+
+function toggleExDone(id, type) {
+  haptic('medium');
+  const exData = load(KEYS.EXERCISES, {});
+  const todayKey = todayStr();
+  if (!exData[todayKey]) exData[todayKey] = {};
+  exData[todayKey][id] = !exData[todayKey][id];
+  save(KEYS.EXERCISES, exData);
+  renderExercises(type);
+
+  // Check all done
+  const w = WORKOUTS_DATA[type];
+  const allDone = w.exercises.every(ex => exData[todayKey][ex.id]);
+  if (allDone && exData[todayKey][id]) {
+    setTimeout(() => showNotif('🎉', 'Barcha mashqlar bajarildi!', 'Trenirovkani yakunlang'), 300);
+  }
+}
+
+function markAllDone() {
+  haptic('medium');
+  if (!g_workoutType) return;
+  const w = WORKOUTS_DATA[g_workoutType];
+  const exData = load(KEYS.EXERCISES, {});
+  const todayKey = todayStr();
+  if (!exData[todayKey]) exData[todayKey] = {};
+  w.exercises.forEach(ex => { exData[todayKey][ex.id] = true; });
+  save(KEYS.EXERCISES, exData);
+  renderExercises(g_workoutType);
+  showNotif('💪', 'Zo\'r ish!', 'Barcha mashqlar belgilandi');
+}
+
+// ============================================================
+// STATS STRIP
+// ============================================================
+function updateStatsStrip() {
+  const workouts = load(KEYS.WORKOUTS, {});
+  const todayW = workouts[todayStr()];
+
+  if (g_workoutType) {
+    const w = WORKOUTS_DATA[g_workoutType];
+    const exData = load(KEYS.EXERCISES, {});
+    const todayEx = exData[todayStr()] || {};
+    const doneCount = w.exercises.filter(ex => todayEx[ex.id]).length;
+    document.getElementById('statDone').textContent = doneCount;
+    document.getElementById('statTotal').textContent = w.exercises.length;
+  } else {
+    document.getElementById('statDone').textContent = '—';
+    document.getElementById('statTotal').textContent = '—';
+  }
+
+  document.getElementById('statTime').textContent = todayW ? todayW.duration : '—';
+
+  const streak = calculateStreak();
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('topStreak').textContent = `🔥 ${streak}`;
+}
+
+function calculateStreak() {
+  const workouts = load(KEYS.WORKOUTS, {});
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = dateStr(d);
+    const dow = d.getDay();
+    const isWorkoutDay = !!DOW_WORKOUT[dow];
+
+    if (!isWorkoutDay) continue; // skip rest days
+
+    if (workouts[key]) {
+      streak++;
+    } else {
+      if (i > 0) break; // allow today to be 0 and still count yesterday's streak
+    }
+  }
+  return streak;
+}
+
+// ============================================================
+// PLAN PAGE
+// ============================================================
+function renderPlan() {
+  const weekNum = getCurrentWeek();
+
+  ['phase1Weeks','phase2Weeks'].forEach((elId, pi) => {
+    const html = PHASES_DATA.filter(p => p.phase === pi + 1).map(p => {
+      const s = p.week < weekNum ? 'done' : p.week === weekNum ? 'current' : 'future';
+      const icon = s==='done' ? '✓' : s==='current' ? '◉' : '○';
+      return `<div class="week-row">
+        <div class="week-num">W${p.week}</div>
+        <div class="week-info"><div class="week-name">${p.name}</div><div class="week-desc">${p.desc}</div></div>
+        <div class="week-status week-${s}">${icon}</div>
+      </div>`;
+    }).join('');
+    document.getElementById(elId).innerHTML = html;
+  });
+
+  showPlanDay('push', document.querySelector('.wtab.active') || document.querySelector('.wtab'));
+}
+
+function showPlanDay(type, tabEl) {
+  document.querySelectorAll('.wtab').forEach(t => t.classList.remove('active'));
+  if (tabEl) tabEl.classList.add('active');
+  const w = WORKOUTS_DATA[type];
+  const html = w.exercises.map((ex,i) => `
+    <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:11px;font-weight:700;font-family:var(--mono);color:${w.color};width:18px;flex-shrink:0;padding-top:2px">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;margin-bottom:2px">${ex.name}</div>
+        <div style="font-size:11px;color:var(--text2)">${ex.sets} · Dam: ${ex.rest} · ${ex.weight}</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('planDayContent').innerHTML = html;
+}
+
+// ============================================================
+// STATISTICS
+// ============================================================
+function renderStats() {
+  const workouts = load(KEYS.WORKOUTS, {});
+  const keys = Object.keys(workouts);
+  const totalW = keys.length;
+  const totalMin = keys.reduce((s,k) => s + (workouts[k].duration || 0), 0);
+  const avgMin = totalW ? Math.round(totalMin / totalW) : 0;
+  const maxMin = keys.reduce((m,k) => Math.max(m, workouts[k].duration || 0), 0);
+  const streak = calculateStreak();
+  const dayNum = getCurrentDay();
+  const pct = Math.min(100, Math.round((dayNum / 60) * 100));
+  const weekNum = getCurrentWeek();
+  const phase = getPhase();
+
+  // This week
+  const now = new Date(); now.setHours(0,0,0,0);
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  let thisWeek = keys.filter(k => new Date(k) >= weekStart).length;
+
+  // Vitamin compliance
+  const vitData = load(KEYS.VITAMINS, {});
+  let vitTotal = 0, vitDone = 0;
+  Object.keys(vitData).forEach(day => {
+    VITAMINS_LIST.forEach(v => { vitTotal++; if (vitData[day][v.id]) vitDone++; });
+  });
+  const vitPct = vitTotal ? Math.round((vitDone/vitTotal)*100) : 0;
+
+  document.getElementById('stTotalW').textContent = totalW;
+  document.getElementById('stStreak').textContent = streak;
+  document.getElementById('stTotalMin').textContent = totalMin;
+  document.getElementById('stCompPct').textContent = pct + '%';
+  document.getElementById('stD1').textContent = totalW;
+  document.getElementById('stD2').textContent = (totalMin/60).toFixed(1) + ' soat';
+  document.getElementById('stD3').textContent = avgMin + ' daqiqa';
+  document.getElementById('stD4').textContent = maxMin + ' daqiqa';
+  document.getElementById('stD5').textContent = thisWeek + ' / 3';
+  document.getElementById('stD6').textContent = vitPct + '%';
+  document.getElementById('stD7').textContent = weekNum + '-hafta';
+  document.getElementById('stD8').textContent = phase === 1 ? 'Asosiy (1-oy)' : 'Intensiv (2-oy)';
+
+  renderHeatmap(workouts);
+  renderBarChart(workouts);
+}
+
+function renderHeatmap(workouts) {
+  const start = getStartDate();
+  const todayKey = todayStr();
+  let html = '';
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i);
+    const key = dateStr(d);
+    const dow = d.getDay();
+    const isWorkoutDay = !!DOW_WORKOUT[dow];
+    const isToday = key === todayKey;
+    const isDone = !!workouts[key];
+    let cls = 'hm-cell';
+    if (isDone) cls += ' done';
+    else if (!isWorkoutDay) cls += ' rest';
+    if (isToday) cls += ' today';
+    html += `<div class="${cls}" title="${key}: ${isDone ? 'Bajarildi' : isWorkoutDay ? 'O\'tkazildi' : 'Dam'}"></div>`;
+  }
+  document.getElementById('heatmap').innerHTML = html;
+}
+
+function renderBarChart(workouts) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const bars = [];
+  for (let w = 7; w >= 0; w--) {
+    const wStart = new Date(now); wStart.setDate(now.getDate() - ((now.getDay()+6)%7) - w*7);
+    const wEnd = new Date(wStart); wEnd.setDate(wStart.getDate() + 6);
+    let count = 0;
+    Object.keys(workouts).forEach(k => { const d = new Date(k); if (d >= wStart && d <= wEnd) count++; });
+    bars.push({ count, label:`W${8-w}` });
+  }
+  const maxC = Math.max(...bars.map(b=>b.count), 1);
+  const html = bars.map(b => `
+    <div class="bar-col">
+      <div class="bar-fill" style="height:${Math.round((b.count/maxC)*65)}px;${b.count===0?'background:var(--border)':''}"></div>
+      <div class="bar-lbl">${b.label}</div>
+    </div>`).join('');
+  document.getElementById('barChart').innerHTML = html;
+}
+
+// ============================================================
+// VITAMINS
+// ============================================================
+function renderVitamins() {
+  const vitData = load(KEYS.VITAMINS, {});
+  const todayKey = todayStr();
+  const todayVit = vitData[todayKey] || {};
+  const done = VITAMINS_LIST.filter(v => todayVit[v.id]).length;
+  const pct = Math.round((done / VITAMINS_LIST.length) * 100);
+
+  document.getElementById('vitaminDate').textContent = formatDateFull(new Date());
+  document.getElementById('vitaminPct').textContent = pct + '%';
+  document.getElementById('vitaminDoneCount').textContent = `${done}/${VITAMINS_LIST.length} qabul qilindi`;
+  document.getElementById('vitaminProgFill').style.width = pct + '%';
+
+  const html = VITAMINS_LIST.map(v => {
+    const isDone = !!todayVit[v.id];
+    return `
+    <div class="vitamin-card${isDone?' done':''}" onclick="toggleVitamin('${v.id}')">
+      <div class="vitamin-icon">${v.icon}</div>
+      <div class="vitamin-info">
+        <div class="vitamin-name">${v.name}</div>
+        <div class="vitamin-desc">${v.desc}</div>
+        <div style="margin-top:5px">
+          <span class="vitamin-time">${v.time}</span>
+          <span class="vitamin-time" style="background:var(--primary-dim);color:var(--primary)">${v.dose}</span>
+        </div>
+      </div>
+      <div class="vitamin-check">${isDone?'✓':''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('vitaminList').innerHTML = html;
+}
+
+function toggleVitamin(id) {
+  haptic('medium');
+  const vitData = load(KEYS.VITAMINS, {});
+  const todayKey = todayStr();
+  if (!vitData[todayKey]) vitData[todayKey] = {};
+  vitData[todayKey][id] = !vitData[todayKey][id];
+  save(KEYS.VITAMINS, vitData);
+  renderVitamins();
+
+  const done = VITAMINS_LIST.filter(v => (vitData[todayKey]||{})[v.id]).length;
+  if (done === VITAMINS_LIST.length) {
+    setTimeout(() => showNotif('🌟', 'Barcha vitaminlar!', 'Bugun 100% bajarildi'), 300);
+  }
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+let notifTimeout = null;
+function showNotif(icon, title, sub) {
+  document.getElementById('notifIcon').textContent = icon;
+  document.getElementById('notifTitle').textContent = title;
+  document.getElementById('notifSub').textContent = sub;
+  const banner = document.getElementById('notifBanner');
+  banner.classList.add('show');
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => banner.classList.remove('show'), 4500);
+}
+function closeNotif() {
+  document.getElementById('notifBanner').classList.remove('show');
+}
+
+// ============================================================
+// SMART REMINDERS (on load)
+// ============================================================
+function checkReminders() {
+  const hour = new Date().getHours();
+  const vitData = load(KEYS.VITAMINS, {});
+  const todayVit = vitData[todayStr()] || {};
+  const workouts = load(KEYS.WORKOUTS, {});
+  const wType = getWorkoutForDate(new Date());
+
+  const reminders = [];
+
+  // Workout reminder
+  if (wType && !workouts[todayStr()]) {
+    if (hour >= 8 && hour <= 11) {
+      reminders.push({ delay:2000, icon:'🏋️', title:`Bugun ${WORKOUTS_DATA[wType].name} kuni!`, sub:'Trenirovkani boshlashni unutma' });
+    }
+    if (hour >= 17 && hour <= 19) {
+      reminders.push({ delay:2000, icon:'⚡', title:'Kechki trenirovka vaqti!', sub:WORKOUTS_DATA[wType].fullName });
+    }
+  }
+
+  // D3 morning
+  if (hour >= 7 && hour <= 10 && !todayVit.v1) {
+    reminders.push({ delay:3500, icon:'☀️', title:'D3 vitamini!', sub:'Ertalabki dozangizni unutmang' });
+  }
+  // Magnesium evening
+  if (hour >= 21 && hour <= 23 && !todayVit.v3) {
+    reminders.push({ delay:2500, icon:'⚡', title:'Magniy vaqti!', sub:'Uxlashdan oldin qabul qiling' });
+  }
+
+  if (reminders.length > 0) {
+    const r = reminders[0];
+    setTimeout(() => showNotif(r.icon, r.title, r.sub), r.delay);
+  }
+}
+
+// ============================================================
+// TELEGRAM MAIN BUTTON (optional enhancement)
+// ============================================================
+function updateTgMainButton() {
+  if (!tg || !tg.MainButton) return;
+  const wType = g_workoutType;
+  const workouts = load(KEYS.WORKOUTS, {});
+  if (wType && !workouts[todayStr()] && timerState.elapsed > 0) {
+    tg.MainButton.setText('🏁 Trenirovkani tugatish');
+    tg.MainButton.show();
+    tg.MainButton.onClick(openFinishModal);
+  } else {
+    tg.MainButton.hide();
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  // Restore timer if page reloaded during workout
+  const saved = load(KEYS.TIMER, null);
+  if (saved && saved.running && saved.startTs) {
+    timerState.workoutStartTs = saved.workoutStartTs;
+    timerState.elapsed = saved.elapsed + Math.floor((Date.now() - saved.startTs) / 1000);
+    timerState.running = false; // don't auto-resume, user can press continue
+    g_workoutType = saved.workoutType;
+  }
+
+  renderToday();
+  checkReminders();
+
+  // Vitamin reminder if some not done and it's daytime
+  setTimeout(() => {
+    const vitData = load(KEYS.VITAMINS, {});
+    const todayVit = vitData[todayStr()] || {};
+    const notDone = VITAMINS_LIST.filter(v => !todayVit[v.id]);
+    const hour = new Date().getHours();
+    if (notDone.length > 0 && hour >= 9 && hour < 22) {
+      showNotif('💊', `${notDone.length} ta vitamin kutmoqda`, 'Vitaminlar bo\'limini ko\'ring');
+    }
+  }, 6000);
+}
+
+// Save timer state before page unload
+window.addEventListener('beforeunload', () => {
+  if (timerState.elapsed > 0 || timerState.running) {
+    save(KEYS.TIMER, {
+      running: timerState.running,
+      startTs: timerState.startTs,
+      elapsed: timerState.elapsed,
+      workoutStartTs: timerState.workoutStartTs,
+      workoutType: g_workoutType,
+    });
+  }
+});
+
+init();
+</script>
+</body>
+</html>
